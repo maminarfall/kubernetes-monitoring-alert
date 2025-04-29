@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: slack-notifier
+  namespace: s5ndeye-monitoring
+spec:
+  template:
+    spec:
+      containers:
+      - name: notifier
+        image: curlimages/curl:latest
+        command: ["sh", "-c"]
+        args:
+          - >
+            curl -X POST -H 'Content-type: application/json' \
+            --data '{"username": "DevOps Bot", "icon_emoji": ":robot_face:", "text": "🚀 Deployment completed successfully!"}' \
+            https://hooks.slack.com/services/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
+      restartPolicy: Never

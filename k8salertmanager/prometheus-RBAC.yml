@@ -1,0 +1,26 @@
+# prometheus-rbac.yml
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prometheus-role
+  namespace: s5ndeye-monitoring
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints"]
+    verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prometheus-rolebinding
+  namespace: s5ndeye-monitoring
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-k8s
+    namespace: s5ndeye-monitoring
+roleRef:
+  kind: Role
+  name: prometheus-role
+  apiGroup: rbac.authorization.k8s.io

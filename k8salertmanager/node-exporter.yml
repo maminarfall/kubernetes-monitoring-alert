@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: node-exporter
+  namespace: s5ndeye-monitoring
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-exporter
+  namespace: s5ndeye-monitoring
+  labels:
+    app.kubernetes.io/name: node-exporter
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node-exporter
+    spec:
+      hostNetwork: true
+      hostPID: true
+      serviceAccountName: node-exporter
+      containers:
+        - name: node-exporter
+          image: prom/node-exporter:latest
+          ports:
+            - containerPort: 9100
+              name: metrics
+          securityContext:
+            privileged: true
+          args:
+            - --path.procfs=/host/proc
+            - --path.sysfs=/host/sys
+            - --collector.filesystem.ignored-mount-points
+            - "^/(sys|proc|dev|host|etc)($|/)"
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-exporter
+  namespace: s5ndeye-monitoring
+  labels:
+    app.kubernetes.io/name: node-exporter
+spec:
+  selector:
+    app.kubernetes.io/name: node-exporter
+  ports:
+    - name: metrics
+      port: 9100
+      targetPort: 9100
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: node-exporter
+  namespace: s5ndeye-monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-exporter
+  endpoints:
+    - port: metrics
+      interval: 15s
+  namespaceSelector:
+    matchNames:
+      - s5ndeye-monitoring

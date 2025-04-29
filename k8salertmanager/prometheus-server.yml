@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: prometheus-main
+  namespace: s5ndeye-monitoring
+spec:
+  replicas: 1
+  serviceAccountName: prometheus-k8s  
+  serviceMonitorSelector: {}
+  ruleSelector: {}
+  alerting:
+    alertmanagers:
+      - namespace: s5ndeye-monitoring
+        name: alertmanager-main
+        port: web

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: s5ndeye-monitoring
+  labels:
+    app: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+       containers:
+        - name: alertmanager
+          image: prom/alertmanager:latest
+          args:
+            - "--config.file=/etc/alertmanager/alertmanager.yaml"
+          ports:
+            - containerPort: 9093
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/alertmanager
+            - name: smtp-secret
+              mountPath: /etc/alertmanager/secrets
+              readOnly: true
+          volumes:
+        - name: config-volume
+          configMap:
+            name: alertmanager-config
+        - name: smtp-secret
+          secret:
+            secretName: alertmanager-secret
